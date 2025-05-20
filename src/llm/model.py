@@ -1,3 +1,5 @@
+import os
+from openai import AzureOpenAI
 import requests, time
 import dashscope
 import torch
@@ -5,9 +7,12 @@ import json
 import re
 from runner.logger import Logger
 from llm.prompts import prompts_fewshot_parse
-def model_chose(step,model="gpt-4 32K"):
+from dotenv import load_dotenv
+
+
+def model_chose(step,model="gpt-4.1"):
     if model.startswith("gpt") or model.startswith("claude35_sonnet") or model.startswith("gemini"):
-        return gpt_req(step,model)
+        return azure_gpt_req(step, model)
     if model == "deepseek":
         return deep_seek(model)
     if model.startswith("qwen"):
@@ -72,6 +77,64 @@ def request(url,model,messages,temperature,top_p,n,key,**k):
                 }).json()
 
     return res
+
+def get_azure_client():
+    load_dotenv()
+    api_version = os.getenv("api_version")
+    endpoint = os.getenv("endpoint")
+    subscription_key = os.getenv("subscription_key")
+
+    client = AzureOpenAI(
+        api_version=api_version,
+        azure_endpoint=endpoint,
+        api_key=subscription_key,
+    )
+    deployment = os.getenv("deployment")
+    return client, deployment
+
+
+class azure_gpt_req(req):
+    def __init__(self, step, model="azure-gpt-4"):
+        self.step = step
+        self.Cost = 0
+        self.client, self.deployment = get_azure_client()
+
+    def log_record(self, prompt_text, output):
+        logger = Logger()
+        logger.log_conversation(prompt_text, "Human", self.step)
+        logger.log_conversation(output, "AI", self.step)
+
+    def get_ans(self, message_text, temperature=0.0, top_p=1.0, n=1, single=True, **kwargs):
+        count = 0
+        while count < 5:
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.deployment,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are an SQL expert, skilled in handling various SQL-related issues."
+                        },
+                        {
+                            "role": "user",
+                            "content": message_text
+                        }
+                    ],
+                    temperature=temperature,
+                    top_p=top_p,
+                    max_tokens=800,
+                    **kwargs
+                )
+                output = response.choices[0].message.content
+                if self.step != "prepare_train_queries":
+                    self.log_record(message_text, output)
+                usage = response.usage
+                self.Cost += usage.prompt_tokens / 1000 * 0.03 + usage.completion_tokens / 1000 * 0.06
+                return output
+            except Exception as e:
+                count += 1
+                print(f"[Azure GPT] Retry {count} due to error: {e}")
+                time.sleep(2)
 
 class gpt_req(req):
 
