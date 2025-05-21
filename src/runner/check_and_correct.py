@@ -32,8 +32,12 @@ def get_sql(chat_model,
     # print(sql)
     if single:
         return sql_raw_parse(sql, return_question)
-    else:
+    elif isinstance(sql, list):
         return [x['message']['content'] for x in sql], ""
+    elif isinstance(sql, dict) and 'message' in sql:
+        return [sql['message']['content']], ""
+    else:
+        raise TypeError(f"Expected list of dicts, got: {type(sql)} with value: {repr(sql)}")
 
 
 def retable(sql):  # 把T1 恢复原状

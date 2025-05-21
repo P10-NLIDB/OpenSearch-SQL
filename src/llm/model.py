@@ -1,4 +1,6 @@
+import io
 import os
+import sys
 from openai import AzureOpenAI
 import requests, time
 import dashscope
@@ -8,7 +10,7 @@ import re
 from runner.logger import Logger
 from llm.prompts import prompts_fewshot_parse
 from dotenv import load_dotenv
-
+import traceback
 
 def model_chose(step,model="gpt-4.1"):
     if model.startswith("gpt") or model.startswith("claude35_sonnet") or model.startswith("gemini"):
@@ -123,17 +125,33 @@ class azure_gpt_req(req):
                     temperature=temperature,
                     top_p=top_p,
                     max_tokens=800,
-                    **kwargs
+                    n=n,
                 )
-                output = response.choices[0].message.content
-                if self.step != "prepare_train_queries":
-                    self.log_record(message_text, output)
-                usage = response.usage
-                self.Cost += usage.prompt_tokens / 1000 * 0.03 + usage.completion_tokens / 1000 * 0.06
-                return output
+
+                if single and n == 1:
+                    content = response.choices[0].message.content
+                    content = content.encode("utf-8", errors="replace").decode("utf-8")
+                    if self.step != "prepare_train_queries":
+                        self.log_record(message_text, content)
+                    # I dont know if this is the real cost but... whatever
+                    self.Cost += response.usage.prompt_tokens / 1000 * 0.01 + response.usage.completion_tokens / 1000 * 0.03
+                    return content
+                else:
+                    outputs = [
+                        {"message": {"content": choice.message.content.encode("utf-8", errors="replace").decode("utf-8")}}
+                        for choice in response.choices
+                    ]
+                    if self.step != "prepare_train_queries":
+                        for item in outputs:
+                            self.log_record(message_text, item["message"]["content"])
+                    # I dont know if this is the real cost but... whatever
+                    self.Cost += response.usage.prompt_tokens / 1000 * 0.01 + response.usage.completion_tokens / 1000 * 0.03
+                    return outputs
+
             except Exception as e:
                 count += 1
-                print(f"[Azure GPT] Retry {count} due to error: {e}")
+                print(f"[Azure GPT] Retry {count} due to error: {str(e).encode('ascii', 'backslashreplace').decode()}")
+                traceback.print_exc()
                 time.sleep(2)
 
 class gpt_req(req):

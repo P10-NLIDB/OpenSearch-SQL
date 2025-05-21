@@ -1,4 +1,5 @@
 from functools import wraps
+import traceback
 from typing import Dict, List, Any, Callable
 from runner.logger import Logger
 from runner.database_manager import DatabaseManager
@@ -32,6 +33,7 @@ def node_decorator(check_schema_status: bool = False) -> Callable:
             except Exception as e:
                 Logger().log(f"Node '{node_name}': {task.db_id}_{task.question_id}\n{type(e)}: {e}\n", "error")
                 # Logger().log(f"Vote content: {vote}, Type: {type(vote)}", "error")  # 打印 vote 内容
+                traceback.print_exc()
                 result.update({
                     "status": "error",
                     "error": f"{type(e)}: <{e}>",

@@ -87,7 +87,7 @@ class Logger:
         """
         log_file_path = self.result_directory / "logs" / f"{self.question_id}_{self.db_id}.log"
         log_file_path.parent.mkdir(parents=True, exist_ok=True)
-        with log_file_path.open("a") as file:
+        with log_file_path.open("a", encoding="utf-8") as file:
             file.write(f"############################## {_from} at step {step} ##############################\n\n")
             if isinstance(text, str):
                 file.write(text)

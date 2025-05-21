@@ -5,6 +5,9 @@ from typing import Any, Dict, List
 import argparse
 from runner.run_manager import RunManager
 import os
+import sys
+import io
+
 
 def load_dataset(data_path: str) -> List[Dict[str, Any]]:
     """
@@ -36,6 +39,7 @@ def main(args):
     run_manager.generate_sql_files()
 
 if __name__ == '__main__':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     args_parser = argparse.ArgumentParser()
     args_parser.add_argument('--data_mode', type=str, required=True, help="Mode of the data to be processed.")
     args_parser.add_argument('--db_root_path', type=str, required=True, help="Path to the data file.")

@@ -73,7 +73,7 @@ engine10='gpt-3.5-turbo-instruct'
 pipeline_setup='{
     "generate_db_schema": {
         "engine": "'${engine1}'",
-        "bert_model": "your_bert_model_path",  
+        "bert_model": "all-MiniLM-L6-v2",  
         "device":"cpu"
     },
     "extract_col_value": {
@@ -86,7 +86,7 @@ pipeline_setup='{
     },
     "column_retrieve_and_other_info": {
         "engine": "'${engine1}'",
-        "bert_model": "your_bert_model_path",  
+        "bert_model": "all-MiniLM-L6-v2",  
         "device":"cpu",
         "temperature":0.3,
         "top_k":10
@@ -101,7 +101,7 @@ pipeline_setup='{
     "align_correct":{
         "engine": "'${engine1}'",
         "n":21,
-        "bert_model": "your_bert_model_path:e.g. /opensearch-sql/bge",  
+        "bert_model": "all-MiniLM-L6-v2",  
         "device":"cpu",
         "align_methods":"style_align+function_align+agent_align"
     }
