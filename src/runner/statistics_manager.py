@@ -90,3 +90,33 @@ class StatisticsManager:
         """
         with self.statistics_file_path.open('w') as f:
             json.dump(self.statistics.to_dict(), f, indent=4,ensure_ascii=False)
+    
+    def print_statistics(self):
+        """
+        Prints the current statistics in a readable format.
+        """
+        stats_dict = self.statistics.to_dict()
+
+        print("=== Evaluation Statistics ===")
+        print()
+
+        counts = stats_dict.get("counts", {})
+        ids = stats_dict.get("ids", {})
+
+        for eval_for in sorted(counts.keys()):
+            count_data = counts[eval_for]
+            id_data = ids.get(eval_for, {})
+
+            print(f"Evaluation Context: {eval_for}")
+            print(f"  Total     : {count_data['total']}")
+            print(f"  Correct   : {count_data['correct']}")
+            print(f"  Incorrect : {count_data['incorrect']}")
+            print(f"  Errors    : {count_data['error']}")
+
+            if id_data.get("correct"):
+                print(f"    ✓ Correct IDs (sample): {id_data['correct'][:5]}")
+            if id_data.get("incorrect"):
+                print(f"    ✗ Incorrect IDs (sample): {id_data['incorrect'][:5]}")
+            if id_data.get("error"):
+                print(f"    ! Error IDs (sample): {id_data['error'][:5]}")
+            print()

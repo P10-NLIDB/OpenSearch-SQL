@@ -139,6 +139,7 @@ class RunManager:
                     continue
                 self.statistics_manager.update_stats(db_id, question_id, evaluation_for, result)
             self.statistics_manager.dump_statistics_to_file()
+            self.statistics_manager.print_statistics()
         self.processed_tasks += 1
         self.plot_progress()
 
