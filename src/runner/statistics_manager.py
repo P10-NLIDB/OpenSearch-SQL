@@ -120,3 +120,54 @@ class StatisticsManager:
             if id_data.get("error"):
                 print(f"    ! Error IDs (sample): {id_data['error'][:5]}")
             print()
+
+    def collect_statistics_summary(self) -> Dict[str, Any]:
+        """
+        Collects evaluation statistics in structured format, including overall execution accuracy.
+        
+        Returns:
+            dict: A summary of evaluation metrics per context and overall accuracy.
+        """
+        stats_dict = self.statistics.to_dict()
+        summary = {}
+
+        counts = stats_dict.get("counts", {})
+        ids = stats_dict.get("ids", {})
+
+        total_tasks = 0
+        total_correct = 0
+
+        for eval_for in sorted(counts.keys()):
+            count_data = counts[eval_for]
+            id_data = ids.get(eval_for, {})
+
+            context_total = count_data.get("total", 0)
+            context_correct = count_data.get("correct", 0)
+            context_incorrect = count_data.get("incorrect", 0)
+            context_error = count_data.get("error", 0)
+
+            summary[eval_for] = {
+                "total": context_total,
+                "correct": context_correct,
+                "incorrect": context_incorrect,
+                "error": context_error,
+                "accuracy": context_correct / context_total if context_total > 0 else 0.0,
+                "sample_ids": {
+                    "correct": id_data.get("correct", [])[:5],
+                    "incorrect": id_data.get("incorrect", [])[:5],
+                    "error": id_data.get("error", [])[:5],
+                }
+            }
+
+            total_tasks += context_total
+            total_correct += context_correct
+
+        # Add overall execution accuracy
+        summary["overall_accuracy"] = {
+            "total": total_tasks,
+            "correct": total_correct,
+            "accuracy": total_correct / total_tasks if total_tasks > 0 else 0.0
+        }
+
+        return summary
+

@@ -20,7 +20,7 @@ def extract_question_section(text):
 
 def generate_questions_and_estimates(db_root_directory, DAIL_SQL):
     fewshot_parse_json=Path(db_root_directory,'llm_train_parse.json')
-    dev_json = os.path.join(args.db_root_directory, 'data_preprocess', 'dev.json')   
+    dev_json = os.path.join(db_root_directory, 'data_preprocess', 'dev.json')   
     dailsql_json=DAIL_SQL
     prompt_head='/* Some SQL examples are provided based on similar problems: */'
     extract_head="/* Some extract examples are provided based on similar problems: */"
@@ -86,13 +86,16 @@ def generate_questions_and_estimates(db_root_directory, DAIL_SQL):
         extracts.append(ext_entry)
 
     # Save questions and estimates
+    args = dict()
+    args['db_root_directory'] = db_root_directory
+    args['DAIL_SQL'] = DAIL_SQL
     task = {
-        "args": vars(args),
+        "args": args,
         "costs": dailsql_content['costs'],
         "questions": questions,
         "extract": extracts
     }
-    generate_path = Path(args.db_root_directory) / "fewshot"
+    generate_path = Path(db_root_directory) / "fewshot"
 
     # if generate_path.exists():
     #     os.system(f"rm -r {generate_path}")

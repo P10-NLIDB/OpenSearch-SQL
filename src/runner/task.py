@@ -43,7 +43,7 @@ class Task:
         # self.raw_question=task_data["raw_question"]
 ##
         self.raw_question=task_data["question"]
-        self.evidence=task_data["evidence"]
+        self.evidence=task_data.get("evidence", "")
         self.question=(self.raw_question+" "+self.evidence).strip()
         if self.evidence=="":
             self.evidence="None"#问题1

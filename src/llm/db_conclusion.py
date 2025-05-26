@@ -255,9 +255,11 @@ class db_agent_string(db_agent):
                 print(e)
                 dic[col] = "", ""
         # 获取外键信息
-        row = list(
-            cursor.execute(f"SELECT * FROM `{table_name}` LIMIT 1").fetchall()
-            [0])
+        result = cursor.execute(f"SELECT * FROM `{table_name}` LIMIT 1").fetchall()
+        if result:
+            row = list(result[0])
+        else:
+            row = []
         for i, col in enumerate(df.columns):
             try:
                 df_tmp=df[col].dropna().drop_duplicates()
