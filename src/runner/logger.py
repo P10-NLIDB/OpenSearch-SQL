@@ -110,7 +110,7 @@ class Logger:
 
         file_path = self.result_directory / f"{self.question_id}_{self.db_id}.json"
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        with file_path.open("w") as file:
+        with file_path.open("w",encoding='utf-8') as file:
             json.dump(execution_history_tmp, file, indent=4,ensure_ascii=False)
 
 def make_serial(obj):
